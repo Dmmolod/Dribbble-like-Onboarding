@@ -74,16 +74,27 @@ class OnboardingView: UIView {
     }
     required init?(coder: NSCoder) { nil }
     
-    override func layoutSubviews() {
-        scrollView.contentSize = CGSize(width: scrollView.contentSize.width,
-                                                  height: 0)
-        
-        let viewHeight = frame.size.height
+    func setupBackgroundImageWith(viewHeight: CGFloat) {
         let imageWidth = viewHeight * 1.4
         let padding: CGFloat = 10
     
         backgroundImageView.frame = CGRect(x: 0, y: -padding,
                                            width: imageWidth, height: viewHeight+padding*2)
+    }
+    
+    func continueButtonAddTarget(_ target: Any?, action: Selector, for event: UIControl.Event) {
+        continueButton.addTarget(target, action: action, for: event)
+    }
+    
+    func pageControllAddTarget(_ target: Any?, action: Selector, for event: UIControl.Event ) {
+        pageControl.addTarget(target, action: action, for: event)
+    }
+    
+    func updateContinueButtonState(needShow: Bool) {
+        self.continueButton.isUserInteractionEnabled = needShow
+        UIView.animate(withDuration: 0.3) {
+            self.continueButton.alpha = needShow ? 1 : 0
+        }
     }
     
     private func addSubviews() {
@@ -111,27 +122,5 @@ class OnboardingView: UIView {
             continueButton.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: -30),
             continueButton.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -30),
         ])
-    }
-    
-    func continueButtonAddTarget(_ target: Any?, action: Selector, for event: UIControl.Event) {
-        continueButton.addTarget(target, action: action, for: event)
-    }
-    
-    func pageControllAddTarget(_ target: Any?, action: Selector, for event: UIControl.Event ) {
-        pageControl.addTarget(target, action: action, for: event)
-    }
-    
-    func updateContinueButtonState(needShow: Bool) {
-        if needShow {
-            self.continueButton.isUserInteractionEnabled = true
-            UIView.animate(withDuration: 0.3) {
-                self.continueButton.alpha = 1
-            }
-        } else {
-            self.continueButton.isUserInteractionEnabled = false
-            UIView.animate(withDuration: 0.3) {
-                self.continueButton.alpha = 0
-            }
-        }
     }
 }

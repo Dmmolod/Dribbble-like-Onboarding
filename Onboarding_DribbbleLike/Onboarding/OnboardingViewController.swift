@@ -26,6 +26,7 @@ class OnboardingViewController: UIViewController {
         
         view.addSubview(onboardingView)
         setupOnboardingView()
+        onboardingView.setupBackgroundImageWith(viewHeight: view.frame.size.height)
         
         addSlides()
         
@@ -88,22 +89,15 @@ class OnboardingViewController: UIViewController {
         let isLastPage = onboardingView.currentPage == onboardingView.numberOfPages - 1
         onboardingView.updateContinueButtonState(needShow: isLastPage)
     }
-    
-    private func getTransformScaleWith(startValue aS: CGFloat, endValue aE: CGFloat,
-                                       startPostion pS: CGFloat, endPosition pE: CGFloat, currentPosition pC: CGFloat) -> CGAffineTransform {
-        let step = (aE - aS) / (pE - pS)
-        let scaleValue = aS + (abs(pC) - 1) * step
-        return CGAffineTransform(scaleX: scaleValue, y: scaleValue)
-    }
 }
 
 extension OnboardingViewController: UIScrollViewDelegate {
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         
-        let currentPage = onboardingView.currentPage,
-            offsetX = scrollView.contentOffset.x,
-            scrollWidth = scrollView.frame.width
+        let offsetX = scrollView.contentOffset.x,
+            scrollWidth = scrollView.frame.width,
+            currentPage = Int(offsetX/scrollWidth)
         
         let canMoveBackground = offsetX > 0 && offsetX < (scrollView.contentSize.width - scrollWidth)
         
@@ -124,7 +118,7 @@ extension OnboardingViewController: UIScrollViewDelegate {
         }
     }
     
-    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+    func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
         setIndiactorForCurrentPage()
     }
 }
