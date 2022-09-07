@@ -6,179 +6,121 @@
 //
 
 import UIKit
+import SafariServices
 
 class OnboardingViewController: UIViewController {
     
-    private var onboardingSlideViews = [OnboardingSlideView]()
-    private var slides: [Slide] = [
-        Slide(title: "This is the best onboarding ever!",
-              content: "This onboarding is made of beautiful slides."),
-        
-        Slide(title: "When you slide, the background moves!",
-              content: "Isn't that the coolest thing ever?"),
-        
-        Slide(title: "The title shrinks as you slide away...",
-              content: "...and gets bigger as it slides in!"),
-        
-        Slide(title: "Follow the tutorial to see how it's done!",
-              content: "Don't worry, it's easier than you think."),
-        
-        Slide(title: "Press the button below...",
-              content: "...and make the magic happen!")
-    ]
+    private var onboardingView = OnboardingView()
     
-    private let backgroundImageView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.contentMode = .scaleToFill
-        imageView.image = .background
-        imageView.clipsToBounds = true
-        return imageView
-    }()
+    private lazy var onboardingSlideViews: [OnboardingSlideView] = []
+    private var slides: [Slide]
     
-    private let onboardingScrollView: UIScrollView = {
-        let scroll = UIScrollView()
-        scroll.translatesAutoresizingMaskIntoConstraints = false
-        scroll.automaticallyAdjustsScrollIndicatorInsets = false
-        scroll.alwaysBounceVertical = false
-        scroll.alwaysBounceHorizontal = true
-        scroll.isDirectionalLockEnabled = true
-        scroll.isPagingEnabled = true
-        return scroll
-    }()
+    init(with slides: [Slide]) {
+        self.slides = slides
+        super.init(nibName: nil, bundle: nil)
+    }
+    required init?(coder: NSCoder) { nil }
     
-    private let onboardingPageControl: UIPageControl = {
-        let control = UIPageControl()
-        control.translatesAutoresizingMaskIntoConstraints = false
-        return control
-    }()
-    
-    private let onboardingContinueButton: UIButton = {
-        let button = UIButton()
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.isUserInteractionEnabled = false
-        button.alpha = 0
-        button.backgroundColor = .tintColor
-        button.tintColor = .white
-        button.setImage(UIImage(systemName: "arrow.right"), for: .normal)
-        return button
-    }()
-
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        view.backgroundColor = .backgroundColor
-        view.tintColor = .tintColor
+        view.addSubview(onboardingView)
+        setupOnboardingView()
         
-        addSubviews()
-        setupConstraints()
-        
-        onboardingScrollView.contentSize = CGSize(width: onboardingScrollView.contentSize.width,
-                                                  height: 0)
-        onboardingContinueButton.layer.cornerRadius = 20
-        setupBackgrounImageView()
         addSlides()
         
-        onboardingScrollView.delegate = self
-        onboardingPageControl.addTarget(self, action: #selector(pageChanged), for: .valueChanged)
+        onboardingView.scrollView.delegate = self
+        onboardingView.pageControllAddTarget(self, action: #selector(pageChanged), for: .valueChanged)
+        onboardingView.continueButtonAddTarget(self, action: #selector(continueButtonPressed), for: .touchUpInside)
     }
     
-    private func addSubviews() {
-        for subview in [backgroundImageView, onboardingScrollView, onboardingPageControl, onboardingContinueButton] { view.addSubview(subview) }
-    }
-
-    private func setupConstraints() {
-        NSLayoutConstraint.activate([
-            onboardingScrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            onboardingScrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            onboardingScrollView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
-            onboardingScrollView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor)
-        ])
+    private func setupOnboardingView() {
+        onboardingView.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            onboardingPageControl.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -30),
-            onboardingPageControl.leadingAnchor.constraint(greaterThanOrEqualTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 30),
-            onboardingPageControl.trailingAnchor.constraint(greaterThanOrEqualTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -30),
-            onboardingPageControl.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+            onboardingView.topAnchor.constraint(equalTo: view.topAnchor),
+            onboardingView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            onboardingView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            onboardingView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
-        
-        NSLayoutConstraint.activate([
-            onboardingContinueButton.widthAnchor.constraint(equalToConstant: 40),
-            onboardingContinueButton.heightAnchor.constraint(equalToConstant: 40),
-            onboardingContinueButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -30),
-            onboardingContinueButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -30),
-        ])
-    }
-    
-    private func setupBackgrounImageView() {
-        let viewHeight = view.frame.size.height
-        let imageWidth = viewHeight * 1.4
-        let padding: CGFloat = 10
-        backgroundImageView.alpha = 0.5
-        backgroundImageView.frame = CGRect(x: 0, y: -padding,
-                                           width: imageWidth, height: viewHeight+padding*2)
     }
     
     private func addSlides() {
-        for slide in slides {
-            let slideView = OnboardingSlideView(with: slide)
+        for slideIndex in slides.indices {
+            let slideView = OnboardingSlideView(with: slides[slideIndex])
             onboardingSlideViews.append(slideView)
-        }
-        for slideViewIndex in onboardingSlideViews.indices {
-            onboardingScrollView.addSubview(onboardingSlideViews[slideViewIndex])
-            onboardingSlideViews[slideViewIndex].frame = CGRect(
-                x: slideViewIndex == 0 ? 0 : onboardingSlideViews[slideViewIndex-1].frame.maxX,
+            
+            onboardingView.scrollView.addSubview(slideView)
+            slideView.frame = CGRect(
+                x: slideIndex == 0 ? 0 : onboardingSlideViews[slideIndex-1].frame.maxX,
                 y: 0,
                 width: view.frame.width,
                 height: view.frame.height
             )
-            if slideViewIndex > 0 {
-                onboardingSlideViews[slideViewIndex].stackView.transform = CGAffineTransform(scaleX: 0.6, y: 0.6)
-            }
         }
+        
         guard let lastSlideView = onboardingSlideViews.last else { return }
-        onboardingScrollView.contentSize.width = lastSlideView.frame.maxX
-        onboardingPageControl.numberOfPages = slides.count
+        onboardingView.scrollView.contentSize.width = lastSlideView.frame.maxX
+        onboardingView.numberOfPages = slides.count
+    }
+    
+    @objc private func continueButtonPressed() {
+        guard let url = URL(string: "https://github.com/Dmmolod/Dribbble-like-Onboarding") else { return }
+        
+        let safariVC = SFSafariViewController(url: url)
+        
+        present(safariVC, animated: true)
     }
     
     @objc private func pageChanged() {
-        print(onboardingPageControl.currentPage)
-        let newOffset = CGPoint(x: onboardingScrollView.frame.width * CGFloat(onboardingPageControl.currentPage),
-                             y: 0)
-        onboardingScrollView.setContentOffset(newOffset, animated: true)
-        updateContinueButtonState()
+        let newOffset = CGPoint(x: onboardingView.scrollView.frame.width * CGFloat(onboardingView.currentPage),
+                                y: 0)
+        
+        onboardingView.scrollView.setContentOffset(newOffset, animated: true)
+        let isLastPage = onboardingView.currentPage == onboardingView.numberOfPages - 1
+        onboardingView.updateContinueButtonState(needShow: isLastPage)
     }
     
     private func setIndiactorForCurrentPage()  {
-        let page = Int(onboardingScrollView.contentOffset.x/onboardingScrollView.frame.width)
-        onboardingPageControl.currentPage = page
-        updateContinueButtonState()
+        let page = Int(onboardingView.scrollView.contentOffset.x/onboardingView.scrollView.frame.width)
+        onboardingView.currentPage = page
+        
+        let isLastPage = onboardingView.currentPage == onboardingView.numberOfPages - 1
+        onboardingView.updateContinueButtonState(needShow: isLastPage)
     }
     
-    private func updateContinueButtonState() {
-        if onboardingPageControl.currentPage == slides.count - 1 {
-            self.onboardingContinueButton.isUserInteractionEnabled = true
-            UIView.animate(withDuration: 0.3) {
-                self.onboardingContinueButton.alpha = 1
-            }
-        } else {
-            self.onboardingContinueButton.isUserInteractionEnabled = false
-            UIView.animate(withDuration: 0.3) {
-                self.onboardingContinueButton.alpha = 0
-            }
-        }
+    private func getTransformScaleWith(startValue aS: CGFloat, endValue aE: CGFloat,
+                                       startPostion pS: CGFloat, endPosition pE: CGFloat, currentPosition pC: CGFloat) -> CGAffineTransform {
+        let step = (aE - aS) / (pE - pS)
+        let scaleValue = aS + (abs(pC) - 1) * step
+        return CGAffineTransform(scaleX: scaleValue, y: scaleValue)
     }
-    
-    var previosLoc: CGFloat = 0
 }
 
 extension OnboardingViewController: UIScrollViewDelegate {
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        let isOffsetGreaterThanZero = scrollView.contentOffset.x > 0
-        let isOffsetLessThanMaxX = scrollView.contentOffset.x < (scrollView.contentSize.width - view.frame.width)
         
-        if isOffsetGreaterThanZero && isOffsetLessThanMaxX {
-            backgroundImageView.frame.origin.x = -scrollView.contentOffset.x/3
+        let currentPage = onboardingView.currentPage,
+            offsetX = scrollView.contentOffset.x,
+            scrollWidth = scrollView.frame.width
+        
+        let canMoveBackground = offsetX > 0 && offsetX < (scrollView.contentSize.width - scrollWidth)
+        
+        if canMoveBackground { onboardingView.backgroundImageFrame.origin.x = -offsetX / 3 }
+        
+        let originalScale: CGFloat = 1, minScale: CGFloat = 0.3
+        
+        let realOffset = offsetX - scrollWidth * CGFloat(currentPage)
+        let isRightSwipe = realOffset < 0
+        
+        let swipedPage = isRightSwipe ? currentPage - 1 : currentPage + 1
+        
+        onboardingSlideViews[currentPage].transformScaleWith(startValue: originalScale, endValue: minScale,
+                                                             startPostion: 1, endPosition: scrollWidth, currentPosition: realOffset)
+        if swipedPage < onboardingSlideViews.count && swipedPage >= 0 {
+            onboardingSlideViews[swipedPage].transformScaleWith(startValue: minScale, endValue: originalScale,
+                                                                startPostion: 1, endPosition: scrollWidth, currentPosition: realOffset)
         }
     }
     

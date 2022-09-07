@@ -9,8 +9,8 @@ import Foundation
 import UIKit
 
 class OnboardingSlideView: UIView {
-    
-    let stackView: UIStackView = {
+        
+    private let stackView: UIStackView = {
         let stackView = UIStackView()
         stackView.translatesAutoresizingMaskIntoConstraints = false
         stackView.axis = .vertical
@@ -38,6 +38,7 @@ class OnboardingSlideView: UIView {
     
     init(with slide: Slide) {
         super.init(frame: .zero)
+        
         backgroundColor = .clear
         titleLabel.text = slide.title
         contentLabel.text = slide.content
@@ -58,5 +59,12 @@ class OnboardingSlideView: UIView {
             stackView.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor, constant: 30),
             stackView.trailingAnchor.constraint(greaterThanOrEqualTo: trailingAnchor, constant: -30)
         ])
+    }
+    
+    final func transformScaleWith(startValue aS: CGFloat, endValue aE: CGFloat,
+                                  startPostion pS: CGFloat, endPosition pE: CGFloat, currentPosition pC: CGFloat) {
+        let step = (aE - aS) / (pE - pS)
+        let scaleValue = aS + (abs(pC) - 1) * step
+        stackView.transform = CGAffineTransform(scaleX: scaleValue, y: scaleValue)
     }
 }
