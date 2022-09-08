@@ -76,18 +76,12 @@ class OnboardingViewController: UIViewController {
     @objc private func pageChanged() {
         let newOffset = CGPoint(x: onboardingView.scrollView.frame.width * CGFloat(onboardingView.currentPage),
                                 y: 0)
-        
         onboardingView.scrollView.setContentOffset(newOffset, animated: true)
-        let isLastPage = onboardingView.currentPage == onboardingView.numberOfPages - 1
-        onboardingView.updateContinueButtonState(needShow: isLastPage)
     }
     
     private func setIndiactorForCurrentPage()  {
         let page = Int(onboardingView.scrollView.contentOffset.x/onboardingView.scrollView.frame.width)
         onboardingView.currentPage = page
-        
-        let isLastPage = onboardingView.currentPage == onboardingView.numberOfPages - 1
-        onboardingView.updateContinueButtonState(needShow: isLastPage)
     }
 }
 
@@ -116,9 +110,11 @@ extension OnboardingViewController: UIScrollViewDelegate {
             onboardingSlideViews[swipedPage].transformScaleWith(startValue: minScale, endValue: originalScale,
                                                                 startPostion: 1, endPosition: scrollWidth, currentPosition: realOffset)
         }
+        let isLastPage = currentPage == onboardingView.numberOfPages - 1
+        onboardingView.updateContinueButtonState(needShow: isLastPage)
     }
     
-    func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         setIndiactorForCurrentPage()
     }
 }
