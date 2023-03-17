@@ -61,8 +61,13 @@ class OnboardingSlideView: UIView {
         ])
     }
     
-    final func transformScaleWith(startValue aS: CGFloat, endValue aE: CGFloat,
-                                  startPostion pS: CGFloat, endPosition pE: CGFloat, currentPosition pC: CGFloat) {
+    final func transformScaleWith(
+        startValue aS: CGFloat,
+        endValue aE: CGFloat,
+        startPostion pS: CGFloat,
+        endPosition pE: CGFloat,
+        currentPosition pC: CGFloat
+    ) {
         let step = (aE - aS) / (pE - pS)
         let scaleValue = aS + (abs(pC) - 1) * step
         stackView.transform = CGAffineTransform(scaleX: scaleValue, y: scaleValue)

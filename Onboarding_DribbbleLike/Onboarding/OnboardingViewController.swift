@@ -89,27 +89,40 @@ extension OnboardingViewController: UIScrollViewDelegate {
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         
-        let offsetX = scrollView.contentOffset.x,
-            scrollWidth = scrollView.frame.width,
-            currentPage = Int(offsetX/scrollWidth)
+        let offsetX = scrollView.contentOffset.x
+        let scrollWidth = scrollView.frame.width
+        let currentPage = Int(offsetX/scrollWidth)
         
         let canMoveBackground = offsetX > 0 && offsetX < (scrollView.contentSize.width - scrollWidth)
         
         if canMoveBackground { onboardingView.backgroundImageFrame.origin.x = -offsetX / 3 }
         
-        let originalScale: CGFloat = 1, minScale: CGFloat = 0.3
+        let originalScale: CGFloat = 1
+        let minScale: CGFloat = 0.3
         
         let realOffset = offsetX - scrollWidth * CGFloat(currentPage)
         let isRightSwipe = realOffset < 0
         
         let swipedPage = isRightSwipe ? currentPage - 1 : currentPage + 1
         
-        onboardingSlideViews[currentPage].transformScaleWith(startValue: originalScale, endValue: minScale,
-                                                             startPostion: 1, endPosition: scrollWidth, currentPosition: realOffset)
+        onboardingSlideViews[currentPage].transformScaleWith(
+            startValue: originalScale,
+            endValue: minScale,
+            startPostion: 1,
+            endPosition: scrollWidth,
+            currentPosition: realOffset
+        )
+        
         if swipedPage < onboardingSlideViews.count && swipedPage >= 0 {
-            onboardingSlideViews[swipedPage].transformScaleWith(startValue: minScale, endValue: originalScale,
-                                                                startPostion: 1, endPosition: scrollWidth, currentPosition: realOffset)
+            onboardingSlideViews[swipedPage].transformScaleWith(
+                startValue: minScale,
+                endValue: originalScale,
+                startPostion: 1,
+                endPosition: scrollWidth,
+                currentPosition: realOffset
+            )
         }
+        
         let isLastPage = currentPage == onboardingView.numberOfPages - 1
         onboardingView.updateContinueButtonState(needShow: isLastPage)
     }

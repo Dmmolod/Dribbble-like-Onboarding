@@ -27,6 +27,7 @@ class OnboardingView: UIView {
     
     let scrollView: UIScrollView = {
         let scroll = UIScrollView()
+        scroll.showsHorizontalScrollIndicator = false
         scroll.translatesAutoresizingMaskIntoConstraints = false
         scroll.automaticallyAdjustsScrollIndicatorInsets = false
         scroll.alwaysBounceVertical = false
@@ -75,11 +76,16 @@ class OnboardingView: UIView {
     required init?(coder: NSCoder) { nil }
     
     func setupBackgroundImageWith(viewHeight: CGFloat) {
-        let imageWidth = viewHeight * 1.4
+        guard let imageSize = backgroundImageView.image?.size else { return }
+        let imageWidth = (imageSize.width / imageSize.height) * viewHeight
         let padding: CGFloat = 10
-    
-        backgroundImageView.frame = CGRect(x: 0, y: -padding,
-                                           width: imageWidth, height: viewHeight+padding*2)
+        
+        backgroundImageView.frame = CGRect(
+            x: 0,
+            y: -padding,
+            width: imageWidth,
+            height: viewHeight+padding
+        )
     }
     
     func continueButtonAddTarget(_ target: Any?, action: Selector, for event: UIControl.Event) {
